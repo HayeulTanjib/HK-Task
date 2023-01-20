@@ -57,10 +57,11 @@ const userDataSchema = new mongoose.Schema({
 
 })
 
-//model
+//models
 const Sector = mongoose.model("sectors", sectorsSchema);
-const User = mongoose.model("userdatas", userDataSchema)
+const User = mongoose.model("userdatas", userDataSchema);
 
+//GET sectors
 server.get("/sectors", async(req, res) => {
     try {
         const sectors = await Sector.find();
@@ -79,10 +80,10 @@ server.get("/sectors", async(req, res) => {
     }
 })
 
-
+//POST userdata
 server.post('/userdata', async(req, res) => {
     try {
-        const userData = ({name: "John", sectors: ['apple', 'orange'], isAgree: true});
+        const userData = (req.body);
         const newUserData = new User(userData);
         const value = await newUserData.save();
         res.status(201).send(value);
@@ -91,4 +92,21 @@ server.post('/userdata', async(req, res) => {
     }
 })
 
+//GET userdata
+server.get("/userdata", async(req, res) => {
+    try {
+        const usersdata = await User.find();
+        usersdata ? res.status(200).send({
+            success: true,
+            message: "return all usersdata",
+            data: usersdata
+        }):
+        res.status(404).send({
+            success: false,
+            message: "usersdata not found"
+        });
 
+    } catch (error) {
+        res.status(500).send({message: error.message});
+    }
+})

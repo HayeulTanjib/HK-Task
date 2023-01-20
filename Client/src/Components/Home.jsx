@@ -1,34 +1,60 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import swal from 'sweetalert';
+import UserData from './UserData';
 
 const Home = () => {
 
     const [sectors, setSectors] = useState([]);
+    const [toogle, setToogle] = useState(false);
 
-    const { register, handleSubmit } = useForm();
-    const onSubmit = data => console.log(data);
+    const { register, formState: { errors }, handleSubmit, reset } = useForm();
+    const onSubmit = async(data) => {
+      
+     await axios.post('http://localhost:5000/userdata', data)
+      .then((res) => {
+        (res.status === 201) ? 
+        swal({
+          position: 'top-end',
+          icon: 'success',
+          title: 'Data has been saved',
+          showConfirmButton: false,
+          timer: 1500
+        })
+        : 
+        swal({
+          position: 'top-end',
+          icon: 'error',
+          title: 'Data not saved',
+          showConfirmButton: false,
+          timer: 1500
+        })
+      })
+
+      reset();
+    }
     
     useEffect(() => {
         axios.get('http://localhost:5000/sectors')
         .then((res) => setSectors(res.data.data))
     },[])
 
-
+ 
     return (
         <div className='flex flex-col justify-center items-center gap-2'>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <input type="text" placeholder="Name" className="input input-bordered w-full max-w-xs my-3 ml-8" />
+            <div className='py-4'>
+            <input type="text" {...register("name", { required: true })} placeholder="Name" className="input input-bordered w-full max-w-xs ml-8" />
+            <small className="text-red-500 ml-8">{errors.name?.type === 'required' && "Name is required"}</small>
+</div>
 <div className=''>
 {
     sectors.map((sector) => {
         return (
             <div className="collapse collapse-arrow border w-96">
-            <input type="checkbox" /> 
-            <div className="collapse-title font-medium">
-              {sector.category}
-            </div>
-
+            <input type="checkbox"/> 
+            <div className="collapse-title font-medium">{sector.category}</div>
             <div className="collapse-content"> 
             {
                 sector.subCategory.map((subcat) => {
@@ -36,7 +62,7 @@ const Home = () => {
             <div className="form-control">
             <label className="label cursor-pointer">
               <span className="label-text">{subcat}</span> 
-              <input type="checkbox"  className="checkbox" />
+              <input type="checkbox" value={subcat} {...register("sectors")}  className="checkbox" />
             </label>
           </div>
   
@@ -51,15 +77,18 @@ const Home = () => {
 }   
 </div>
 <div className="form-control">
-            <label className="label cursor-pointer">
-              <input type="checkbox"  className="checkbox" />
+            <label className="label">
+              <input type="checkbox" {...register("isAgree")} onChange = {() => setToogle(!toogle)} className="checkbox" />
               <span className="label-text mr-60">Agree to terms</span> 
             </label>
           </div>
 <div className='flex justify-center items-center py-2'>
-<button className="btn btn-xs sm:btn-sm md:btn-sm lg:btn-md">Save</button>
+  {toogle ? <button className="btn btn-xs sm:btn-sm md:btn-sm lg:btn-md">Save</button> : <button disabled className="btn btn-xs sm:btn-sm md:btn-sm lg:btn-md">Save</button>}
+
 </div>
 </form>
+<div className="divider px-24"></div> 
+<UserData/>
         </div>
     );
 };
