@@ -1,11 +1,13 @@
 const express = require("express");
 const server = express();
+const cors = require('cors');
 const mongoose = require("mongoose");
 mongoose.set('strictQuery', false);
 const uri = require('./mongo-config');
 const port = 5000;
 
 //middleware
+server.use(cors())
 server.use(express.json());
 server.use(express.urlencoded({extended: true}));
 
