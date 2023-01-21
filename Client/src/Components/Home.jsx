@@ -8,12 +8,15 @@ const Home = () => {
 
     const [sectors, setSectors] = useState([]);
     const [toogle, setToogle] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const API = "https://hktaskk.onrender.com"
 
     const { register, formState: { errors }, handleSubmit, reset } = useForm();
     const onSubmit = async(data) => {
-      
-     await axios.post('http://localhost:5000/userdata', data)
+      console.log(data);
+     await axios.post(`${API}/userdata`, data)
       .then((res) => {
+        
         (res.status === 201) ? 
         swal({
           position: 'top-end',
@@ -36,8 +39,13 @@ const Home = () => {
     }
     
     useEffect(() => {
-        axios.get('http://localhost:5000/sectors')
-        .then((res) => setSectors(res.data.data))
+      setLoading(true);
+      const sectorsData = async() => {
+        const { data } = await axios.get(`${API}/sectors`)
+        setSectors(data.data)
+        setLoading(false);
+      }
+      sectorsData();
     },[])
 
  
@@ -48,8 +56,10 @@ const Home = () => {
             <input type="text" {...register("name", { required: true })} placeholder="Name" className="input input-bordered w-full max-w-xs ml-8" />
             <small className="text-red-500 ml-8">{errors.name?.type === 'required' && "Name is required"}</small>
 </div>
-<div className=''>
-{
+<div className='flex flex-col justify-center items-center'>
+
+{ loading ? <progress className="progress w-56 py-1"></progress> :
+(
     sectors.map((sector) => {
         return (
             <div className="collapse collapse-arrow border w-96">
@@ -68,13 +78,15 @@ const Home = () => {
   
   )
 })
-}
-          
-            </div>
-          </div>
-        )
-      })
+} 
+        </div>
+      </div>
+      )
+    })
+    )
 }   
+
+
 </div>
 <div className="form-control">
             <label className="label">
@@ -88,7 +100,7 @@ const Home = () => {
 </div>
 </form>
 <div className="divider px-24"></div> 
-<UserData/>
+<UserData API={API}/>
         </div>
     );
 };
